@@ -1,13 +1,17 @@
 package main
 
 import (
-	"github.com/vova616/screenshot"
+	"github.com/pato/screenshot"
 	"image/png"
 	"os"
 )
 
 func main() {
-	img, err := screenshot.CaptureScreen()
+	xconn, err := screenshot.Setup()
+	if err != nil {
+		panic(err)
+	}
+	img, err := screenshot.CaptureScreen(xconn)
 	if err != nil {
 		panic(err)
 	}
