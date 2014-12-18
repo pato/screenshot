@@ -7,13 +7,15 @@ import (
 	"github.com/BurntSushi/xgb/xproto"
 )
 
-func ScreenRect() (image.Rectangle, error) {
-	c, err := xgb.NewConn()
-	if err != nil {
-		return image.Rectangle{}, err
-	}
-	defer c.Close()
+func Setup() (*xgb.Conn, error) {
+	return xgb.NewConn()
+}
 
+func Close(c *xgb.Conn) {
+	c.Close()
+}
+
+func ScreenRect(c *xgb.Conn) (image.Rectangle, error) {
 	screen := xproto.Setup(c).DefaultScreen(c)
 	x := screen.WidthInPixels
 	y := screen.HeightInPixels
@@ -21,21 +23,15 @@ func ScreenRect() (image.Rectangle, error) {
 	return image.Rect(0, 0, int(x), int(y)), nil
 }
 
-func CaptureScreen() (*image.RGBA, error) {
-	r, e := ScreenRect()
+func CaptureScreen(c *xgb.Conn) (*image.RGBA, error) {
+	r, e := ScreenRect(c)
 	if e != nil {
 		return nil, e
 	}
-	return CaptureRect(r)
+	return CaptureRect(c, r)
 }
 
-func CaptureRect(rect image.Rectangle) (*image.RGBA, error) {
-	c, err := xgb.NewConn()
-	if err != nil {
-		return nil, err
-	}
-	defer c.Close()
-
+func CaptureRect(c *xgb.Conn, rect image.Rectangle) (*image.RGBA, error) {
 	screen := xproto.Setup(c).DefaultScreen(c)
 	x, y := rect.Dx(), rect.Dy()
 	xImg, err := xproto.GetImage(c, xproto.ImageFormatZPixmap, xproto.Drawable(screen.Root), int16(rect.Min.X), int16(rect.Min.Y), uint16(x), uint16(y), 0xffffffff).Reply()
